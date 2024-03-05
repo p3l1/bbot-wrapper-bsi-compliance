@@ -1,0 +1,45 @@
+---
+version: "3.2"
+services:
+  ssh:
+    image: lscr.io/linuxserver/openssh-server:latest
+    container_name: service_ssh
+    hostname: ssh.internal
+    volumes:
+      - ./config/ssh:/config/ssh_host_keys/sshd_config:ro
+    networks:
+      internal:
+  tls:
+    image: lscr.io/linuxserver/nginx:latest
+    container_name: service_tls
+    hostname: tls.internal
+    volumes:
+      - "./config/nginx:/config/nginx"
+    networks:
+      internal:
+  ipsec:
+    image: hwdsl2/ipsec-vpn-server:latest
+    container_name: service_ipsec
+    hostname: ipsec.internal
+    volumes:
+      - ./config/ipsec:/etc/ipsec.d
+    privileged: true
+    networks:
+      internal:
+  scan:
+    image: blacklanternsecurity/bbot:bsi_compliance
+    container_name: bbot
+    command: "-t ssh.internal,tls.internal,ipsec.internal -m nmap,fingerprintx,bsi_compliance_report"
+    volumes:
+      - "${HOME}/.bbot/scans:/root/.bbot/scans"
+      - "./config/bbot:/root/.config/bbot"
+    depends_on:
+      - ipsec
+      - ssh
+      - tls
+    networks:
+      internal:
+
+networks:  # needed so PTR records are resolved correct inside docker network
+  internal:
+    name: internal  # needs to match local test domain
