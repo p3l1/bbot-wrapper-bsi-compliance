@@ -284,7 +284,7 @@
 #     include_members: true
 #     include_member_repos: false
    nmap:
-#     top_ports: 100
+     top_ports: 100
      ports: '22,80,443,500,4500'
 #     timing: T4
 #     skip_host_discovery: true
@@ -338,7 +338,7 @@
 #     use_previous: false
 #     summary_netmask: 16
    json:
-     output_file: 'output.json'
+#     output_file: 'output.json'
      console: false
      siem_friendly: false
 #   web_report:
