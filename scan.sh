@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Cleaning..."
+echo "Cleaning up..."
 docker compose down
 
 echo "Starting Docker Compose stack..."

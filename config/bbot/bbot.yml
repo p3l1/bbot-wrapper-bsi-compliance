@@ -284,8 +284,8 @@
 #     include_members: true
 #     include_member_repos: false
    nmap:
-     top_ports: 100
-#     ports: '22,80,443,500,4500'
+#     top_ports: 100
+     ports: '22,80,443,500,4500'
 #     timing: T4
 #     skip_host_discovery: true
 #   c99: {}
@@ -337,10 +337,10 @@
 #     output_file: ''
 #     use_previous: false
 #     summary_netmask: 16
-#   json:
-#     output_file: ''
-#     console: false
-#     siem_friendly: false
+   json:
+     output_file: 'output.json'
+     console: false
+     siem_friendly: false
 #   web_report:
 #     output_file: ''
 #     css_theme_file: https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.1.0/github-markdown.min.css
