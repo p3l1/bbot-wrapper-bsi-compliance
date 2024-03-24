@@ -1,7 +1,4 @@
 #!/bin/bash
 
-echo "Cleaning up..."
-docker compose down
-
-echo "Starting Docker Compose stack..."
+echo "Starting service containers..."
 docker compose up -d ipsec ssh tls

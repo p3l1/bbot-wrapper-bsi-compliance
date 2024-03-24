@@ -29,7 +29,14 @@ services:
   scan:
     image: blacklanternsecurity/bbot:bsi_compliance
     container_name: bbot
-    command: "-t ssh.internal,herzo.gs,ipsec.internal -m nmap,fingerprintx,bsi_compliance_tls,bsi_compliance_ssh -om json -n bsi_compliance"
+    command:
+      - "-t"
+      - "${BBOT_TARGETS}"
+      - "-m"
+      - "nmap,fingerprintx,bsi_compliance_tls,bsi_compliance_ssh"
+      - "-om json"
+      - "-n"
+      - "${BBOT_SCAN_NAME}"
     volumes:
       - "./config/bbot:/root/.config/bbot"  # use configuration from this repo
       - "./scans:/root/.bbot/scans"  # scan results are saved here
