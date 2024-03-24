@@ -1,10 +1,7 @@
 #!/bin/bash
 
-echo "Cleaning up..."
-docker compose down
-
-echo "Starting Docker Compose stack..."
-docker compose up -d
+echo "Starting bbot..."
+docker compose up -d scan
 
 echo "Attaching to bbot output..."
 docker compose logs -f scan
