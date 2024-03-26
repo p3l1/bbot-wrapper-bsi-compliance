@@ -18,18 +18,23 @@ services:
     networks:
       internal:
   ipsec:
-    image: hwdsl2/ipsec-vpn-server:latest
+    image: andrey0001/strongswan:alpine
     container_name: service_ipsec
     hostname: ipsec.internal
-    volumes:
-      - ./config/ipsec:/etc/ipsec.d
     privileged: true
+    environment:
+      - VPN_USER=user
+      - VPN_PASS=password
+      - VPN_PSK=secretkey
+      - VPN_SUBNET=192.168.14.0/24
+    volumes:
+      - ./ipsec:/etc/ipsec.conf
     networks:
       internal:
   scan:
     image: blacklanternsecurity/bbot:bsi_compliance
     container_name: bbot
-    command: "-d -t ${BBOT_TARGETS} -m nmap,fingerprintx,bsi_compliance_tls,bsi_compliance_ssh -om json -n ${BBOT_SCAN_NAME}"
+    command: "-t ${BBOT_TARGETS} -m nmap,fingerprintx,bsi_compliance_tls,bsi_compliance_ssh -om json" # -n ${BBOT_SCAN_NAME}"
     volumes:
       - "./config/bbot:/root/.config/bbot"  # use configuration from this repo
       - "./scans:/root/.bbot/scans"  # scan results are saved here
