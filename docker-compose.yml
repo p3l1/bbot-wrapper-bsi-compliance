@@ -27,8 +27,6 @@ services:
       - VPN_PASS=password
       - VPN_PSK=secretkey
       - VPN_SUBNET=192.168.14.0/24
-    volumes:
-      - ./ipsec:/etc/ipsec.conf
     networks:
       internal:
   scan:
