@@ -42,7 +42,23 @@ services:
       - tls
     networks:
       internal:
+  neo4j:
+    image: neo4j
+    container_name: service_neo4j
+    hostname: graph.internal
+    ports:
+      - "7687:7687"
+      - "7474:7474"
+    volumes:
+      - neo4j_data:/data
+    environment:
+      NEO4J_AUTH: neo4j/bbotislife
+    networks:
+      internal:
 
 networks:  # needed so PTR records are resolved correct inside docker network
   internal:
     name: internal  # needs to match local test domain
+
+volumes:
+  neo4j_data:
