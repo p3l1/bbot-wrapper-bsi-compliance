@@ -1,0 +1,21 @@
+\documentclass[12pt,a4paper]{article}
+
+\begin{document}
+\begin{tabular}{ ccc  }
+
+     \BLOCK{for col in header}
+
+    \BLOCK{if loop.last} %checks if loop reached to the end
+        \VAR{col}
+    \BLOCK{else}
+        \VAR{col} &
+    \BLOCK{endif}
+
+    \BLOCK{endfor}  \\
+
+    \BLOCK{for col in dict_map}
+    \VAR{col[0]} & \VAR{col[1]} & \VAR{col[2]}  \\
+    \BLOCK{endfor}  \\
+
+    \end{tabular}
+\end{document}
