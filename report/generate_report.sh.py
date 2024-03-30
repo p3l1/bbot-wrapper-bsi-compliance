@@ -105,7 +105,7 @@ if __name__ == "__main__":
     parser.add_argument("-j", "--ndjson", type=str, help="Path to the output.ndjson",
                         metavar="<PATH>", default=Path("../scans/bsi_compliance/output.ndjson"))
     parser.add_argument("-o", "--output", type=str, help="Path where the report should be exported to",
-                        metavar="<PATH>", default=Path("./output/report.pdf"))
+                        metavar="<PATH>", default=Path("output/report.pdf"))
     parser.add_argument("-t", "--template", type=str, help="Path to the report.tex.j2",
                         metavar="<PATH>", default=Path("templates/report.tex.j2"))
 
