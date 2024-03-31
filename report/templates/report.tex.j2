@@ -1,21 +1,25 @@
 \documentclass[12pt,a4paper]{article}
 
+\title{BSI Compliance Report}
+
 \begin{document}
-\begin{tabular}{ ccc  }
 
-     \BLOCK{for col in header}
+    \section{SSH}\label{sec:test}
+    Hallo Welt, dies ist mein Text
 
-    \BLOCK{if loop.last} %checks if loop reached to the end
-        \VAR{col}
-    \BLOCK{else}
-        \VAR{col} &
-    \BLOCK{endif}
-
-    \BLOCK{endfor}  \\
-
+    \begin{tabular}{ ccc }
+    \BLOCK{for col in header}
+    \BLOCK{if loop.last}\VAR{col}\BLOCK{else}\VAR{col} & \BLOCK{endif}
+    \BLOCK{endfor}
+    \\
     \BLOCK{for col in dict_map}
-    \VAR{col[0]} & \VAR{col[1]} & \VAR{col[2]}  \\
-    \BLOCK{endfor}  \\
+    \VAR{col[0]} & \VAR{col[1]} & \VAR{col[2]} \\
+    \BLOCK{endfor}
+    \\
 
     \end{tabular}
+
+    \section{IPSEC}\label{sec:ipsec}
+    \section{TLS}\label{sec:tls}
+
 \end{document}

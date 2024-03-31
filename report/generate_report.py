@@ -10,11 +10,11 @@ import pypandoc
 from fpdf import FPDF
 
 LATEX_JINJA_ENV = jinja2.Environment(
-    block_start_string='\BLOCK{',
+    block_start_string=r'\BLOCK{',
     block_end_string='}',
-    variable_start_string='\VAR{',
+    variable_start_string=r'\VAR{',
     variable_end_string='}',
-    comment_start_string='\#{',
+    comment_start_string=r'\#{',
     comment_end_string='}',
     line_statement_prefix='%%',
     line_comment_prefix='%#',
@@ -26,12 +26,22 @@ LATEX_JINJA_ENV = jinja2.Environment(
 
 class BSIComplianceReport:
 
-    def __init__(self, template_path: Path, output_path: Path, data: List):
+    def __init__(self, template_path: Path, output_path: Path, data: List, is_debug: bool,
+                 disable_scan_id_checking: bool = True):
 
-        self.logger = self._setup_logger()
+        self.log_level = logging.INFO
+        if is_debug:
+            self.log_level = logging.DEBUG
+
+        self.logger = self._setup_logger(self.log_level)
+
+        self.disable_scan_id_checking = disable_scan_id_checking
         self.template_path = template_path
         self.output_path = output_path
         self.data = data
+
+        if not self._validate_data():
+            self.logger.error(f"The given output.ndjson contains data from more than one bbot scan.")
 
         templated_latex_path = self._template_data()
         if not templated_latex_path:
@@ -60,12 +70,34 @@ class BSIComplianceReport:
 
         return logger
 
+    def _validate_data(self) -> bool:
+        """
+        Check if the input only contains events from one unique SCAN event. Can be disabled via CLI flag.
+        :returns: True, if only one SCAN event is found, otherwise False.
+        """
+
+        if self.disable_scan_id_checking:
+            # Check is disabled
+            self.logger.warning("BBOT scan id checking is disabled. Report may contain results from multiple scans.")
+            return True
+
+        scan = ""
+        for event in self.data:
+            if not scan:
+                scan = event.get("scan")
+                continue
+
+            if scan != event.get("scan"):
+                return False
+
+        return True
+
     def _template_data(self) -> Union[bool, Path]:
 
-        # TODO: Read input data and assign it to variables for readablity
+        # TODO: Read input data and assign it to variables for readability
 
         header = ['Num', 'Date', 'Ticker']
-        data = [[1, 2, 3], [4, 'STR', 'Test'], [5, 6, 'Ticker']]
+        data = [[1, 2, 3], [4, 'STR', 'Test'], [5, 6, 'Ticker2']]
 
         template = LATEX_JINJA_ENV.get_template('templates/report.tex.j2')
         renderer_template = template.render(dict_map=data, header=header)
@@ -82,32 +114,41 @@ class BSIComplianceReport:
             return False
 
     def _render_pdf(self, templated_latex_path: Path) -> Union[bool, Path]:
-        # Convert LaTeX file to PDF
+
         try:
+            # Convert LaTeX file to PDF
             pypandoc.convert_file(templated_latex_path, 'latex', outputfile=self.output_path)
 
             # Delete templated LaTeX file again
-            os.unlink(templated_latex_path)
+            if self.log_level > logging.DEBUG:
+                os.unlink(templated_latex_path)
+
             return self.output_path
+
         except RuntimeError as e:
             self.logger.error("Error while converting file from LaTeX to PDF")
             self.logger.exception(e)
-            return False
         except OSError as e:
             self.logger.error("Pandoc binary not found!")
             self.logger.exception(e)
+
         return False
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Process BBOT data and create a PDF report")
+    parser = argparse.ArgumentParser(description="Process BBOT output.ndjson and create PDF report based on LaTeX "
+                                                 "Jinja2 template")
     parser.add_argument("-j", "--ndjson", type=str, help="Path to the output.ndjson",
                         metavar="<PATH>", default=Path("../scans/bsi_compliance/output.ndjson"))
     parser.add_argument("-o", "--output", type=str, help="Path where the report should be exported to",
                         metavar="<PATH>", default=Path("output/report.pdf"))
     parser.add_argument("-t", "--template", type=str, help="Path to the report.tex.j2",
                         metavar="<PATH>", default=Path("templates/report.tex.j2"))
+    parser.add_argument("-d", "--debug", help="Enable debug logging, disable deletion of templated "
+                        "LaTeX file", action='store_true')
+    parser.add_argument("--disable-scan-id-checking", help="Prevents generation "
+                        "of reports based on multiple bbot scans. Default: True", action='store_true')
 
     args = parser.parse_args()
 
@@ -126,4 +167,4 @@ if __name__ == "__main__":
     args_template_path = Path(args.template).resolve()
     args_output_path = Path(args.output).resolve()
 
-    report = BSIComplianceReport(args_template_path, args_output_path, report_data)
+    report = BSIComplianceReport(args_template_path, args_output_path, report_data, args.debug)
