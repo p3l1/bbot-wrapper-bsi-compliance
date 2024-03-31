@@ -17,13 +17,12 @@
 
     \section{TLS}\label{sec:tls}
 
-
     \section{SSH}\label{sec:ssh}
 
     \BLOCK{for e in ssh_compliance_events}
-        \subsection{Host: \VAR{e.get("host")}}\label{subsec:ssh-\VAR{e.get("host")}}
+        \subsection{Host: \VAR{e.get("host")} - Erkannte Algorithmen}\label{subsec:ssh-valid\VAR{e.get("host")}}
 
-        \subsubsection{Key Exchange (KEX) - Erkannte Algorithmen}
+        \subsubsection{Key Exchange (KEX)}
 
         \begin{center}
         \begin{tabular}{ |c|c|c| }
@@ -37,7 +36,7 @@
         \end{tabular}
         \end{center}
 
-        \subsubsection{Server Host Key (SHK) - Erkannte Algorithmen}
+        \subsubsection{Server Host Key (SHK)}
 
         \begin{center}
         \begin{tabular}{ |c|c|c| }
@@ -51,7 +50,7 @@
         \end{tabular}
         \end{center}
 
-        \subsubsection{Server Client Encryption (ESC) - Erkannte Algorithmen}
+        \subsubsection{Server Client Encryption (ESC)}
 
         \begin{center}
         \begin{tabular}{ |c|c|c| }
@@ -65,7 +64,7 @@
         \end{tabular}
         \end{center}
 
-        \subsubsection{MAC Server Client Encryption (MSC) - Erkannte Algorithmen}
+        \subsubsection{MAC Server Client Encryption (MSC)}
 
         \begin{center}
         \begin{tabular}{ |c|c|c| }
@@ -78,6 +77,65 @@
         \hline
         \end{tabular}
         \end{center}
+
+        % Invalid algorithms
+        \subsection{Host: \VAR{e.get("host")} - Nicht konforme Algorithmen}\label{subsec:ssh-invalid\VAR{e.get("host")}}
+        \subsubsection{Key Exchange (KEX)}
+
+        \begin{center}
+        \begin{tabular}{ |c| }
+        \hline
+        Name \\
+        \hline
+        \BLOCK{for kex in e.get("invalid_algorithms").get("KEX")}
+            \VAR{kex.get("name")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{Server Host Key (SHK)}
+
+        \begin{center}
+        \begin{tabular}{ |c| }
+        \hline
+        Name \\
+        \hline
+        \BLOCK{for shk in e.get("invalid_algorithms").get("SERVER_HOST_KEY")}
+            \VAR{shk.get("name")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{Server Client Encryption (ESC)}
+
+        \begin{center}
+        \begin{tabular}{ |c| }
+        \hline
+        Name \\
+        \hline
+        \BLOCK{for esc in e.get("invalid_algorithms").get("ENCRYPTION_SERVER_TO_CLIENT")}
+            \VAR{esc.get("name")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{MAC Server Client Encryption (MSC)}
+
+        \begin{center}
+        \begin{tabular}{ |c| }
+        \hline
+        Name \\
+        \hline
+        \BLOCK{for msc in e.get("invalid_algorithms").get("MAC_SERVER_TO_CLIENT")}
+            \VAR{msc.get("name")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
     \BLOCK{endfor}
     \section{IPSEC}\label{sec:ipsec}
 
