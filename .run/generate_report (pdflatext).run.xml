@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="generate_report" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+  <configuration default="false" name="generate_report (pdflatext)" type="PythonConfigurationType" factoryName="Python">
     <module name="bbot-wrapper-bsi-compliance" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
@@ -14,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/report/generate_report.py" />
-    <option name="PARAMETERS" value="-d -j ../scans/ukbonn_scan/output.ndjson" />
+    <option name="PARAMETERS" value="-d -j ../scans/ukbonn_scan/output_mock.ndjson -p" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

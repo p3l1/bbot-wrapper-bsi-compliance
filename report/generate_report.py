@@ -2,12 +2,13 @@ import json
 import argparse
 import logging
 import os
+import subprocess
+from datetime import datetime, UTC
 from pathlib import Path
 from typing import Dict, List, Union
 
 import jinja2
 import pypandoc
-from fpdf import FPDF
 
 LATEX_JINJA_ENV = jinja2.Environment(
     block_start_string=r'\BLOCK{',
@@ -26,8 +27,8 @@ LATEX_JINJA_ENV = jinja2.Environment(
 
 class BSIComplianceReport:
 
-    def __init__(self, template_path: Path, output_path: Path, data: List, is_debug: bool,
-                 disable_scan_id_checking: bool = True):
+    def __init__(self, template_path: Path, output_path: Path, data: List[Dict], is_debug: bool,
+                 disable_scan_id_checking: bool = False, use_pdflatex: bool = True):
 
         self.log_level = logging.INFO
         if is_debug:
@@ -36,6 +37,7 @@ class BSIComplianceReport:
         self.logger = self._setup_logger(self.log_level)
 
         self.disable_scan_id_checking = disable_scan_id_checking
+        self.use_pdflatex = use_pdflatex
         self.template_path = template_path
         self.output_path = output_path
         self.data = data
@@ -96,11 +98,37 @@ class BSIComplianceReport:
 
         # TODO: Read input data and assign it to variables for readability
 
+        report_template = LATEX_JINJA_ENV.get_template(str(Path("templates/report.tex.j2")))
+
+        self.scan_id = {e.get("scan") for e in self.data if self.disable_scan_id_checking}
+        if not self.scan_id:
+            self.scan_id = {self.data[0].get("scan")}
+        else:
+            self.logger.warning("Detected multiple bbot scan ids. Report is based on data from multiple scans!")
+
+        self.timestamp = self.data[0].get("timestamp")
+        self.timestamp = datetime.fromtimestamp(float(self.timestamp), UTC)
+
+        # Format datetime object to German date format
+        german_date_format = "%d.%m.%Y"
+        self.timestamp = self.timestamp.strftime(german_date_format)
+
+        self.tls_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_tls" == e.get("module")]
+        self.ssh_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_ssh" == e.get("module")]
+        self.ipsec_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_ipsec" == e.get("module")]
+
+        # Example BEGIN
         header = ['Num', 'Date', 'Ticker']
         data = [[1, 2, 3], [4, 'STR', 'Test'], [5, 6, 'Ticker2']]
+        # Example END
 
-        template = LATEX_JINJA_ENV.get_template('templates/report.tex.j2')
-        renderer_template = template.render(dict_map=data, header=header)
+        renderer_template = report_template.render(scan_ids=self.scan_id,
+                                                   timestamp=self.timestamp,
+                                                   tls_compliance_events=self.tls_compliance_events,
+                                                   ssh_compliance_events=self.ssh_compliance_events,
+                                                   ipsec_compliance_events=self.ipsec_compliance_events,
+                                                   dict_map=data,
+                                                   header=header)
 
         # Write rendered LaTeX to file
         latex_report_path = Path("output/report.tex").absolute()
@@ -114,6 +142,11 @@ class BSIComplianceReport:
             return False
 
     def _render_pdf(self, templated_latex_path: Path) -> Union[bool, Path]:
+
+        if self.use_pdflatex:
+            command = ["pdflatex", f"-output-directory={self.output_path.parent.absolute()}", str(templated_latex_path.absolute())]
+            subprocess.run(command)
+            return self.output_path
 
         try:
             # Convert LaTeX file to PDF
@@ -146,9 +179,12 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--template", type=str, help="Path to the report.tex.j2",
                         metavar="<PATH>", default=Path("templates/report.tex.j2"))
     parser.add_argument("-d", "--debug", help="Enable debug logging, disable deletion of templated "
-                        "LaTeX file", action='store_true')
+                                              "LaTeX file", action='store_true')
     parser.add_argument("--disable-scan-id-checking", help="Prevents generation "
-                        "of reports based on multiple bbot scans. Default: True", action='store_true')
+                        "of reports based on multiple bbot scans. Default: True",
+                        action='store_true')
+    parser.add_argument("-p", "--use-pdflatex", help="Create PDF using pdflatex instead of pypandoc ",
+                        action='store_true')
 
     args = parser.parse_args()
 
@@ -167,4 +203,9 @@ if __name__ == "__main__":
     args_template_path = Path(args.template).resolve()
     args_output_path = Path(args.output).resolve()
 
-    report = BSIComplianceReport(args_template_path, args_output_path, report_data, args.debug)
+    report = BSIComplianceReport(args_template_path,
+                                 args_output_path,
+                                 report_data,
+                                 args.debug,
+                                 args.disable_scan_id_checking,
+                                 args.use_pdflatex)

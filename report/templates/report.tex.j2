@@ -1,25 +1,84 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass{article}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
 
-\title{BSI Compliance Report}
+\title{BSI Compliance Check}
+\date{Durchgeführt am \VAR{timestamp}}
 
 \begin{document}
 
-    \section{SSH}\label{sec:test}
-    Hallo Welt, dies ist mein Text
-
-    \begin{tabular}{ ccc }
-    \BLOCK{for col in header}
-    \BLOCK{if loop.last}\VAR{col}\BLOCK{else}\VAR{col} & \BLOCK{endif}
+    \section{General}\label{sec:general}
+    \subsection{BBOT}\label{subsec:bbot}
+    \begin{itemize}
+    \BLOCK{for id in scan_ids}
+        \item \VAR{id}
     \BLOCK{endfor}
-    \\
-    \BLOCK{for col in dict_map}
-    \VAR{col[0]} & \VAR{col[1]} & \VAR{col[2]} \\
-    \BLOCK{endfor}
-    \\
+    \end{itemize}
 
-    \end{tabular}
-
-    \section{IPSEC}\label{sec:ipsec}
     \section{TLS}\label{sec:tls}
+
+
+    \section{SSH}\label{sec:ssh}
+
+    \BLOCK{for e in ssh_compliance_events}
+        \subsection{Host: \VAR{e.get("host")}}\label{subsec:ssh-\VAR{e.get("host")}}
+
+        \subsubsection{Key Exchange (KEX) - Erkannte Algorithmen}
+
+        \begin{center}
+        \begin{tabular}{ |c|c|c| }
+        \hline
+        Name & Richtlinie & Gültig bis \\
+        \hline
+        \BLOCK{for kex in e.get("found_algorithms").get("KEX")}
+            \VAR{kex.get("name")} & TODO & \VAR{kex.get("valid_until", "-")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{Server Host Key (SHK) - Erkannte Algorithmen}
+
+        \begin{center}
+        \begin{tabular}{ |c|c|c| }
+        \hline
+        Name & Richtlinie & Gültig bis \\
+        \hline
+        \BLOCK{for shk in e.get("found_algorithms").get("SERVER_HOST_KEY")}
+            \VAR{shk.get("name")} & TODO & \VAR{shk.get("valid_until", "-")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{Server Client Encryption (ESC) - Erkannte Algorithmen}
+
+        \begin{center}
+        \begin{tabular}{ |c|c|c| }
+        \hline
+        Name & Richtlinie & Gültig bis \\
+        \hline
+        \BLOCK{for esc in e.get("found_algorithms").get("ENCRYPTION_SERVER_TO_CLIENT")}
+            \VAR{esc.get("name")} & TODO & \VAR{esc.get("valid_until", "-")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{MAC Server Client Encryption (MSC) - Erkannte Algorithmen}
+
+        \begin{center}
+        \begin{tabular}{ |c|c|c| }
+        \hline
+        Name & Richtlinie & Gültig bis \\
+        \hline
+        \BLOCK{for msc in e.get("found_algorithms").get("MAC_SERVER_TO_CLIENT")}
+            \VAR{msc.get("name")} & TODO & \VAR{msc.get("valid_until", "-")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+    \BLOCK{endfor}
+    \section{IPSEC}\label{sec:ipsec}
 
 \end{document}
