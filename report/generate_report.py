@@ -96,8 +96,6 @@ class BSIComplianceReport:
 
     def _template_data(self) -> Union[bool, Path]:
 
-        # TODO: Read input data and assign it to variables for readability
-
         report_template = LATEX_JINJA_ENV.get_template(str(Path("templates/report.tex.j2")))
 
         self.scan_id = {e.get("scan") for e in self.data if self.disable_scan_id_checking}

@@ -137,6 +137,70 @@
         \end{center}
 
     \BLOCK{endfor}
-    \section{IPSEC}\label{sec:ipsec}
+
+    % IPSEC BEGIN
+
+    \section{IPSEC IKEv1}\label{sec:ipsec}
+
+    \BLOCK{for e in ipsec_compliance_events}
+        \subsection{Host: \VAR{e.get("host")}:\VAR{e.get("port")} - Erkannte/Invalide Algorithmen}\label{subsec:ipsec-invalid-\VAR{e.get("host").replace(".", "-")}}
+
+        \subsubsection{Encryption (ENC)}
+
+        \begin{center}
+        \begin{tabular}{ |c| }
+        \hline
+        Name \\
+        \hline
+        \BLOCK{for enc in e.get("invalid_algorithms").get("found_encr_algorithms")}
+            \VAR{enc.get("name")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{Integrity (INT)}
+
+        \begin{center}
+        \begin{tabular}{ |c| }
+        \hline
+        Name \\
+        \hline
+        \BLOCK{for inte in e.get("invalid_algorithms").get("found_integ_algorithms")}
+            \VAR{inte.get("name")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{Authentication (AUT)}
+
+        \begin{center}
+        \begin{tabular}{ |c| }
+        \hline
+        Name \\
+        \hline
+        \BLOCK{for auth in e.get("invalid_algorithms").get("found_auth_methods")}
+            \VAR{auth.get("name")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{Diffie-Hellman Groups (DHG)}
+
+        \begin{center}
+        \begin{tabular}{ |c| }
+        \hline
+        Name \\
+        \hline
+        \BLOCK{for dhg in e.get("invalid_algorithms").get("found_dh_groups")}
+            \VAR{dhg.get("name")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+    \BLOCK{endfor}
 
 \end{document}
