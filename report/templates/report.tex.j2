@@ -17,10 +17,41 @@
 
     \section{TLS}\label{sec:tls}
 
+    \BLOCK{for e in tls_compliance_events}
+        \subsection{Host: \VAR{e.get("host")}:\VAR{e.get("port")} - Erkannte Algorithmen}\label{subsec:tls-valid-\VAR{e.get("host").replace(".", "-")}}
+
+        \subsubsection{Erkannte TLS Versionen}
+
+        \begin{itemize}
+        \BLOCK{for id in e.get("found_algorithms").get("PROTOCOLS")}
+            \item \VAR{id}
+        \BLOCK{endfor}
+        \end{itemize}
+
+        \BLOCK{for tls_protocol_version in e.get("found_algorithms").get("PROTOCOLS")}
+
+            \subsubsection{Erkannte Cipher für \VAR{tls_protocol_version}}
+
+            \begin{center}
+            \begin{tabular}{ |c|c|c| }
+            \hline
+            Name & Richtlinie & Gültig bis\\
+            \hline
+            \BLOCK{for cipher in e.get("found_algorithms").get(tls_protocol_version.replace(" ", "_").replace(".", "_") + "_CIPHERS")[0]}
+                \VAR{cipher.get("name").replace("_", "\_")} & TODO & \VAR{cipher.get("valid_until")} \\
+            \BLOCK{endfor}
+            \hline
+            \end{tabular}
+            \end{center}
+
+        \BLOCK{endfor}
+
+    \BLOCK{endfor}
+
     \section{SSH}\label{sec:ssh}
 
     \BLOCK{for e in ssh_compliance_events}
-        \subsection{Host: \VAR{e.get("host")} - Erkannte Algorithmen}\label{subsec:ssh-valid\VAR{e.get("host")}}
+        \subsection{Host: \VAR{e.get("host")} - Erkannte Algorithmen}\label{subsec:ssh-valid-\VAR{e.get("host").replace(".", "-")}}
 
         \subsubsection{Key Exchange (KEX)}
 
@@ -79,7 +110,7 @@
         \end{center}
 
         % Invalid algorithms
-        \subsection{Host: \VAR{e.get("host")} - Nicht konforme Algorithmen}\label{subsec:ssh-invalid\VAR{e.get("host")}}
+        \subsection{Host: \VAR{e.get("host")} - Nicht konforme Algorithmen}\label{subsec:ssh-invalid-\VAR{e.get("host").replace(".", "-")}}
         \subsubsection{Key Exchange (KEX)}
 
         \begin{center}

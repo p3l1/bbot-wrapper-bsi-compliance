@@ -100,7 +100,7 @@ class BSIComplianceReport:
 
         self.scan_id = {e.get("scan") for e in self.data if self.disable_scan_id_checking}
         if not self.scan_id:
-            self.scan_id = {self.data[0].get("scan")}
+            self.scan_id = {e.get("scan") for e in self.data}
         else:
             self.logger.warning("Detected multiple bbot scan ids. Report is based on data from multiple scans!")
 
