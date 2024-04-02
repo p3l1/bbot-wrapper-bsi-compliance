@@ -97,36 +97,26 @@ class BSIComplianceReport:
     def _template_data(self) -> Union[bool, Path]:
 
         report_template = LATEX_JINJA_ENV.get_template(str(Path("templates/report.tex.j2")))
+        german_date_format = "%d.%m.%Y um %H:%M:%S"
 
         self.scan_id = {e.get("scan") for e in self.data if self.disable_scan_id_checking}
         if not self.scan_id:
+            # Create Set with Tuples containing the scan id and scan timestamp in German date format
             self.scan_id = {e.get("scan") for e in self.data}
         else:
             self.logger.warning("Detected multiple bbot scan ids. Report is based on data from multiple scans!")
 
-        self.timestamp = self.data[0].get("timestamp")
-        self.timestamp = datetime.fromtimestamp(float(self.timestamp), UTC)
-
-        # Format datetime object to German date format
-        german_date_format = "%d.%m.%Y"
-        self.timestamp = self.timestamp.strftime(german_date_format)
+        self.report_source_events = {(f"{e.get("data").get("host")}:{e.get("data").get("port")}", datetime.fromtimestamp(e.get("timestamp"), UTC).strftime(german_date_format)) for e in self.data}
 
         self.tls_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_tls" == e.get("module")]
         self.ssh_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_ssh" == e.get("module")]
         self.ipsec_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_ipsec" == e.get("module")]
 
-        # Example BEGIN
-        header = ['Num', 'Date', 'Ticker']
-        data = [[1, 2, 3], [4, 'STR', 'Test'], [5, 6, 'Ticker2']]
-        # Example END
-
         renderer_template = report_template.render(scan_ids=self.scan_id,
-                                                   timestamp=self.timestamp,
                                                    tls_compliance_events=self.tls_compliance_events,
                                                    ssh_compliance_events=self.ssh_compliance_events,
                                                    ipsec_compliance_events=self.ipsec_compliance_events,
-                                                   dict_map=data,
-                                                   header=header)
+                                                   report_source_events=self.report_source_events)
 
         # Write rendered LaTeX to file
         latex_report_path = Path("output/report.tex").absolute()

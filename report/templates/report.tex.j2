@@ -3,15 +3,15 @@
 \geometry{a4paper, margin=1in}
 
 \title{BSI Compliance Check}
-\date{Durchgeführt am \VAR{timestamp}}
 
 \begin{document}
 
     \section{General}\label{sec:general}
-    \subsection{BBOT}\label{subsec:bbot}
+    \subsection{Scans}\label{subsec:bbot}
+    Dieser Report basiert auf Daten der folgenden BBOT Events:
     \begin{itemize}
-    \BLOCK{for id in scan_ids}
-        \item \VAR{id}
+    \BLOCK{for event in report_source_events}
+        \item Host/Port: \VAR{event[0]}, gescannt am \VAR{event[1]}
     \BLOCK{endfor}
     \end{itemize}
 
@@ -20,7 +20,7 @@
     \BLOCK{for e in tls_compliance_events}
         \subsection{Host: \VAR{e.get("host")}:\VAR{e.get("port")} - Erkannte Algorithmen}\label{subsec:tls-valid-\VAR{e.get("host").replace(".", "-")}}
 
-        \subsubsection{Erkannte TLS Versionen}
+        \subsubsection{TLS Versionen}
 
         \begin{itemize}
         \BLOCK{for id in e.get("found_algorithms").get("PROTOCOLS")}
@@ -30,21 +30,85 @@
 
         \BLOCK{for tls_protocol_version in e.get("found_algorithms").get("PROTOCOLS")}
 
-            \subsubsection{Erkannte Cipher für \VAR{tls_protocol_version}}
+            \subsubsection{Cipher für \VAR{tls_protocol_version}}
 
             \begin{center}
             \begin{tabular}{ |c|c|c| }
             \hline
             Name & Richtlinie & Gültig bis\\
             \hline
-            \BLOCK{for cipher in e.get("found_algorithms").get(tls_protocol_version.replace(" ", "_").replace(".", "_") + "_CIPHERS")[0]}
-                \VAR{cipher.get("name").replace("_", "\_")} & TODO & \VAR{cipher.get("valid_until")} \\
+            \BLOCK{for cipher in e.get("found_algorithms").get(tls_protocol_version.replace(" ", "_").replace(".", "_") + "_CIPHERS")}
+                \VAR{cipher.get("name").replace("_", "\_")} & \VAR{cipher.get("reason").replace("|", "-")} & \VAR{cipher.get("valid_until")} \\
             \BLOCK{endfor}
             \hline
             \end{tabular}
             \end{center}
 
         \BLOCK{endfor}
+
+        \subsubsection{TLS Erweiterungen}
+
+        \begin{center}
+        \begin{tabular}{ |c|c| }
+        \hline
+        Name & Richtlinie\\
+        \hline
+        \BLOCK{for ext in e.get("found_algorithms").get("EXTENSIONS")}
+            \VAR{ext.get("name").replace("_", "\_")} & \VAR{ext.get("reason").replace("|", "-")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
+
+        % Invalid TLS algorithms
+
+        \subsection{Host: \VAR{e.get("host")}:\VAR{e.get("port")} - Nicht konforme Algorithmen}\label{subsec:tls-invalid-\VAR{e.get("host").replace(".", "-")}}
+
+        \subsubsection{TLS Versionen}
+
+        \BLOCK{if e.get("invalid_algorithms").get("PROTOCOLS") | length > 0}
+
+        \begin{itemize}
+        \BLOCK{for id in e.get("invalid_algorithms").get("PROTOCOLS")}
+            \item \VAR{id}
+        \BLOCK{endfor}
+        \end{itemize}
+
+        \BLOCK{endif}
+
+        % e.get("found_algorithms") is correct here, due to different naming of invalid versions in
+        % e.get("invalid_algorithms").get("PROTOCOLS")
+        \BLOCK{for tls_protocol_version in e.get("found_algorithms").get("PROTOCOLS")}
+
+            \subsubsection{Cipher für \VAR{tls_protocol_version}}
+
+            \begin{center}
+            \begin{tabular}{ |c|c|c| }
+            \hline
+            Name & Richtlinie & Gültig bis\\
+            \hline
+            \BLOCK{for cipher in e.get("invalid_algorithms").get(tls_protocol_version.replace(" ", "_").replace(".", "_") + "_CIPHERS")}
+                \VAR{cipher.get("name").replace("_", "\_")} & \VAR{cipher.get("reason").replace("|", "-")} & \VAR{cipher.get("valid_until")} \\
+            \BLOCK{endfor}
+            \hline
+            \end{tabular}
+            \end{center}
+
+        \BLOCK{endfor}
+
+        \subsubsection{TLS Erweiterungen}
+
+        \begin{center}
+        \begin{tabular}{ |c|c| }
+        \hline
+        Name & Richtlinie\\
+        \hline
+        \BLOCK{for ext in e.get("invalid_algorithms").get("EXTENSIONS")}
+            \VAR{ext.get("name").replace("_", "\_")} & \VAR{ext.get("reason").replace("|", "-").replace("&", "\&")} \\
+        \BLOCK{endfor}
+        \hline
+        \end{tabular}
+        \end{center}
 
     \BLOCK{endfor}
 
@@ -174,7 +238,7 @@
     \section{IPSEC IKEv1}\label{sec:ipsec}
 
     \BLOCK{for e in ipsec_compliance_events}
-        \subsection{Host: \VAR{e.get("host")}:\VAR{e.get("port")} - Erkannte/Invalide Algorithmen}\label{subsec:ipsec-invalid-\VAR{e.get("host").replace(".", "-")}}
+        \subsection{Host: \VAR{e.get("host")}:\VAR{e.get("port")} - Erkannte/Nicht konforme Algorithmen}\label{subsec:ipsec-invalid-\VAR{e.get("host").replace(".", "-")}}
 
         \subsubsection{Encryption (ENC)}
 
