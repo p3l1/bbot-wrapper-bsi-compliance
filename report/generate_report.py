@@ -95,15 +95,18 @@ class BSIComplianceReport:
         return True
 
     def _template_data(self) -> Union[bool, Path]:
+        """
+        :returns: Path to report.tex or False if error
+        """
 
+        # Get report.tex.j2 content as Template object
         report_template = LATEX_JINJA_ENV.get_template(str(self.template_path))
+
+        # Date format for host overview
         german_date_format = "%d.%m.%Y um %H:%M:%S"
 
-        self.scan_id = {e.get("scan") for e in self.data if self.disable_scan_id_checking}
-        if not self.scan_id:
-            # Create Set with Tuples containing the scan id and scan timestamp in German date format
-            self.scan_id = {e.get("scan") for e in self.data}
-        else:
+        # Create Set with scan ids to remove duplicate scan
+        if len({e.get("scan") for e in self.data}) > 1:
             self.logger.warning("Detected multiple bbot scan ids. Report is based on data from multiple scans!")
 
         report_source_event_type_filter = [
@@ -113,23 +116,23 @@ class BSIComplianceReport:
         ]
 
         """
-        Create set (to eliminate duplicates) with tuples containing a string host:port and the timestamp of the actual
+        Create list with tuples containing a string host:port and the timestamp of the actual
         scan. Only BSI_COMPLIANCE_RESULT, FINDING and VULNERABILITY events are taken into account. 
         """
-        self.report_source_events = {
+        self.report_source_events = [
             (f"{e.get("data").get("host")}:{e.get("data").get("port")}",
              datetime.fromtimestamp(e.get("timestamp"), UTC).strftime(german_date_format)) for e in self.data
             if isinstance(e.get("data"), dict) and e.get("type") in report_source_event_type_filter
-        }
+        ]
 
+        # Create Lists for rendering report.tex.j2 file using Jinja2
         self.tls_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_tls" == e.get("module")]
         self.ssh_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_ssh" == e.get("module")]
         self.ipsec_compliance_events = [e.get("data") for e in self.data if "bsi_compliance_ipsec" == e.get("module")]
         self.vulnerabilities = [e.get("data") for e in self.data if "VULNERABILITY" == e.get("type")]
         self.findings = [e.get("data") for e in self.data if "FINDING" == e.get("type")]
 
-        renderer_template = report_template.render(scan_ids=self.scan_id,
-                                                   tls_compliance_events=self.tls_compliance_events,
+        renderer_template = report_template.render(tls_compliance_events=self.tls_compliance_events,
                                                    ssh_compliance_events=self.ssh_compliance_events,
                                                    ipsec_compliance_events=self.ipsec_compliance_events,
                                                    report_source_events=self.report_source_events,
@@ -149,29 +152,28 @@ class BSIComplianceReport:
 
     def _render_pdf(self, templated_latex_path: Path) -> Union[bool, Path]:
 
+        # if -p flag is used, use pdflatex, otherwise use pypandoc (not recommended)
         if self.use_pdflatex:
-            command = ["pdflatex", f"-output-directory={self.output_path.parent.absolute()}", str(templated_latex_path.resolve())]
+            command = ["pdflatex", f"-output-directory={self.output_path.parent.absolute()}", str(templated_latex_path.absolute())]
             subprocess.run(command)
-            return self.output_path
+        else:
+            try:
+                # Convert report.tex to PDF using pypandoc (legacy)
+                pypandoc.convert_file(templated_latex_path, 'latex', outputfile=self.output_path)
+            except RuntimeError as e:
+                self.logger.error("Error while converting file from LaTeX to PDF")
+                self.logger.exception(e)
+                return False
+            except OSError as e:
+                self.logger.error("Pandoc binary not found!")
+                self.logger.exception(e)
+                return False
 
-        try:
-            # Convert LaTeX file to PDF
-            pypandoc.convert_file(templated_latex_path, 'latex', outputfile=self.output_path)
+        # Delete templated report.tex again if debugging is disabled
+        if self.log_level > logging.DEBUG or True:
+            os.unlink(templated_latex_path)
 
-            # Delete templated LaTeX file again if debug
-            if self.log_level > logging.DEBUG or True:
-                os.unlink(templated_latex_path)
-
-            return self.output_path
-
-        except RuntimeError as e:
-            self.logger.error("Error while converting file from LaTeX to PDF")
-            self.logger.exception(e)
-        except OSError as e:
-            self.logger.error("Pandoc binary not found!")
-            self.logger.exception(e)
-
-        return False
+        return self.output_path
 
 
 if __name__ == "__main__":
