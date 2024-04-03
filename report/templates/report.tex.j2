@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{geometry}
+\usepackage{listings}
 \geometry{a4paper, margin=1in}
 
 \title{BSI Compliance Check}
@@ -9,11 +10,13 @@
     \section{General}\label{sec:general}
     \subsection{Scans}\label{subsec:bbot}
     Dieser Report basiert auf Daten der folgenden BBOT Events:
+    \BLOCK{if report_source_events | length > 0}
     \begin{itemize}
     \BLOCK{for event in report_source_events}
         \item Host/Port: \VAR{event[0]}, gescannt am \VAR{event[1]}
     \BLOCK{endfor}
     \end{itemize}
+    \BLOCK{endif}
 
     \section{TLS}\label{sec:tls}
 
@@ -30,6 +33,9 @@
 
         \BLOCK{for tls_protocol_version in e.get("found_algorithms").get("PROTOCOLS")}
 
+            % No Ciphers for TLSv1.0 or TLSv1.1
+            \BLOCK{if tls_protocol_version not in ["TLS 1.0", "TLS 1.1"]}
+
             \subsubsection{Cipher für \VAR{tls_protocol_version}}
 
             \begin{center}
@@ -43,6 +49,8 @@
             \hline
             \end{tabular}
             \end{center}
+
+            \BLOCK{endif}
 
         \BLOCK{endfor}
 
@@ -76,9 +84,11 @@
 
         \BLOCK{endif}
 
-        % e.get("found_algorithms") is correct here, due to different naming of invalid versions in
-        % e.get("invalid_algorithms").get("PROTOCOLS")
+        %# e.get("found_algorithms") is correct here, due to different naming of invalid versions in
+        %# e.get("invalid_algorithms").get("PROTOCOLS")
         \BLOCK{for tls_protocol_version in e.get("found_algorithms").get("PROTOCOLS")}
+            % No Ciphers for TLSv1.0 or TLSv1.1
+            \BLOCK{if tls_protocol_version not in ["TLS 1.0", "TLS 1.1"]}
 
             \subsubsection{Cipher für \VAR{tls_protocol_version}}
 
@@ -94,6 +104,7 @@
             \end{tabular}
             \end{center}
 
+            \BLOCK{endif}
         \BLOCK{endfor}
 
         \subsubsection{TLS Erweiterungen}
@@ -125,7 +136,7 @@
         Name & Richtlinie & Gültig bis \\
         \hline
         \BLOCK{for kex in e.get("found_algorithms").get("KEX")}
-            \VAR{kex.get("name")} & TODO & \VAR{kex.get("valid_until", "-")} \\
+            \VAR{kex.get("name")} & \VAR{kex.get("description", "-")} & \VAR{kex.get("valid_until", "-")} \\
         \BLOCK{endfor}
         \hline
         \end{tabular}
@@ -139,7 +150,7 @@
         Name & Richtlinie & Gültig bis \\
         \hline
         \BLOCK{for shk in e.get("found_algorithms").get("SERVER_HOST_KEY")}
-            \VAR{shk.get("name")} & TODO & \VAR{shk.get("valid_until", "-")} \\
+            \VAR{shk.get("name")} & \VAR{shk.get("description", "-")} & \VAR{shk.get("valid_until", "-")} \\
         \BLOCK{endfor}
         \hline
         \end{tabular}
@@ -153,7 +164,7 @@
         Name & Richtlinie & Gültig bis \\
         \hline
         \BLOCK{for esc in e.get("found_algorithms").get("ENCRYPTION_SERVER_TO_CLIENT")}
-            \VAR{esc.get("name")} & TODO & \VAR{esc.get("valid_until", "-")} \\
+            \VAR{esc.get("name")} & \VAR{esc.get("description", "-")} & \VAR{esc.get("valid_until", "-")} \\
         \BLOCK{endfor}
         \hline
         \end{tabular}
@@ -167,7 +178,7 @@
         Name & Richtlinie & Gültig bis \\
         \hline
         \BLOCK{for msc in e.get("found_algorithms").get("MAC_SERVER_TO_CLIENT")}
-            \VAR{msc.get("name")} & TODO & \VAR{msc.get("valid_until", "-")} \\
+            \VAR{msc.get("name")} & \VAR{msc.get("description", "-")} & \VAR{msc.get("valid_until", "-")} \\
         \BLOCK{endfor}
         \hline
         \end{tabular}
@@ -295,7 +306,28 @@
         \hline
         \end{tabular}
         \end{center}
-
+    
     \BLOCK{endfor}
+
+    \BLOCK{if findings | length > 0}
+    \section{Erkannte Auffälligkeiten (FINDING)}\label{sec:erkannte-auffaelligkeiten}
+    \BLOCK{for finding in findings}
+    \begin{lstlisting}[breaklines]
+        \VAR{finding.get("host")}: \VAR{finding.get("description")}
+    \end{lstlisting}
+    \BLOCK{endfor}
+    \BLOCK{endif}
+
+    \BLOCK{if vulnerabilities | length > 0}
+    \section{Erkannte Schwachstellen (VULNERABILITY)}\label{sec:erkannte-schwachstellen}
+
+    \begin{itemize}
+    \BLOCK{for vul in vulnerabilities}
+    \begin{lstlisting}[breaklines]
+        \VAR{vul.get("host")}: \VAR{vul.get("description")}
+    \end{lstlisting}
+    \BLOCK{endfor}
+    \end{itemize}
+    \BLOCK{endif}
 
 \end{document}
