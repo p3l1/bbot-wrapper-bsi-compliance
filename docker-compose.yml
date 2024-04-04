@@ -47,7 +47,6 @@ services:
     container_name: service_neo4j
     hostname: graph.internal
     ports:
-      - "7687:7687"
       - "7474:7474"
     volumes:
       - neo4j_data:/data
