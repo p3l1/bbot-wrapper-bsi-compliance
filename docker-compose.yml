@@ -40,6 +40,7 @@ services:
       - ipsec
       - ssh
       - tls
+      - graph
     networks:
       internal:
   graph:
