@@ -20,7 +20,12 @@ including all `bsi_compliance_<service>` modules.
 
 ```
 git checkout bsi_compliance_report
+
+# For macOS or other ARM platforms
 docker buildx build --platform linux/amd64 -t blacklanternsecurity/bbot:bsi_compliance .
+
+# For amd64 platform
+docker build -t blacklanternsecurity/bbot:bsi_compliance .
 ```
 
 The above command builds the container for x86 systems. This is currently required due to a python dependency (nassl),
