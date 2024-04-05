@@ -44,6 +44,7 @@ class BSIComplianceReport:
 
         if not self._validate_data():
             self.logger.error(f"The given output.ndjson contains data from more than one bbot scan.")
+            exit(1)
 
         templated_latex_path = self._template_data()
         if not templated_latex_path:
