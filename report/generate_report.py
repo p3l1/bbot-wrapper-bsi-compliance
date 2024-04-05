@@ -121,7 +121,7 @@ class BSIComplianceReport:
         scan. Only BSI_COMPLIANCE_RESULT, FINDING and VULNERABILITY events are taken into account. 
         """
         self.report_source_events = [
-            (f"{e.get("data").get("host")}:{e.get("data").get("port")}",
+            (f"{e.get('data').get('host')}:{e.get('data').get('port')}",
              datetime.fromtimestamp(e.get("timestamp"), UTC).strftime(german_date_format)) for e in self.data
             if isinstance(e.get("data"), dict) and e.get("type") in report_source_event_type_filter
         ]

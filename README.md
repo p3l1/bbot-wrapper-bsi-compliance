@@ -2,6 +2,15 @@
 This repository contains all the files needed beyond bbot to create a compliance report based on
 BSI guidelines for TLS, SSH, IPSec. The BSI is the German ministry for cyber security.
 
+## Requirements
+
+- Python 3.12
+- `pdflatex` binary must be present in `$PATH`
+  - Debian/Ubuntu: `sudo apt-get install texlive-latex-base`
+  - macOS: `brew install basictex`
+- `docker compose` command must be available,
+  - For `docker-compose` you may have to adjust the `*.sh` scripts
+
 ## Running a scan
 
 We execute bbot within a Docker container to ensure reproducible results in all environments.
